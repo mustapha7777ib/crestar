@@ -1,0 +1,209 @@
+// Crestar Trading — catalogue, orders, discounts, reviews
+//
+// The catalogue (products and their sizes/variants) lives here so staff can edit
+// prices, photos and stock from /admin without a redeploy. It was first loaded
+// from src/data/products.ts by prisma/seed.ts.
+//
+// Orders keep a snapshot of each line (name, size, price) taken at checkout, so
+// later catalogue edits never rewrite order history.
+//
+// Money is stored as integer dirhams (1 QAR = 100 dirhams). Weight in grams.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  // Postgres, not SQLite: serverless filesystems are ephemeral, so a file-backed
+  // database would not survive a deploy.
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ——— Catalogue ———
+
+model Product {
+  id       String  @id @default(cuid())
+  slug     String  @unique
+  category String // see src/data/categories.ts
+  active   Boolean @default(true) // hidden from the shop when false
+  sort     Int     @default(0) // catalogue order
+
+  nameEn    String
+  nameAr    String
+  taglineEn String
+  taglineAr String
+  storyEn   String
+  storyAr   String
+  town      String // see src/data/towns.ts
+  badgeEn   String?
+  badgeAr   String?
+  featured  Int? // position in the home page "most loved" row
+  handmade  Boolean @default(false)
+
+  images  String[] // ordered; the first is the main photo
+  details Json     @default("[]") // [{ label: {en, ar}, value: {en, ar} }]
+  bundle  String[] // slugs of the products inside a gift set
+
+  variants Variant[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Variant {
+  id        String  @id @default(cuid())
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  code    String // stable id used in bags and orders, e.g. "500g"
+  labelEn String
+  labelAr String
+  price   Int // dirhams
+  stock   Int? // null = not tracked (always available)
+  weight  Int  @default(0) // grams, for delivery fees
+  sort    Int  @default(0)
+
+  @@unique([productId, code])
+}
+
+// ——— Orders ———
+
+enum OrderStatus {
+  PENDING          // card order created, waiting for the customer to pay
+  FAILED           // card declined, cancelled or abandoned at the gateway
+  PLACED           // paid by card, or cash on delivery accepted: prepare it
+  OUT_FOR_DELIVERY // with the driver
+  DELIVERED        // handed over (cash collected for cash on delivery)
+  CANCELLED        // cancelled by staff
+}
+
+enum PaymentMethod {
+  CARD
+  COD
+}
+
+model Order {
+  id     String      @id @default(cuid())
+  number String      @unique // human-friendly, e.g. CT-7K2M9Q
+  status OrderStatus @default(PENDING)
+  locale String      @default("en")
+
+  currency     String @default("QAR")
+  subtotal     Int
+  discount     Int    @default(0)
+  discountCode String?
+  deliveryFee  Int
+  total        Int
+  weight       Int    @default(0) // grams
+
+  deliveryMethod String // "standard" | "express"
+  paymentMethod  PaymentMethod @default(CARD)
+
+  firstName String
+  lastName  String
+  email     String
+  phone     String // 8-digit Qatar number, without +974
+
+  city     String
+  zone     String
+  street   String
+  building String
+  unit     String?
+  notes    String?
+
+  paymentProvider String // "skipcash" | "demo" | "cod"
+  chargeId        String? @unique
+  paymentStatus   String? // raw provider status, e.g. CAPTURED, DECLINED
+  paidAt          DateTime?
+
+  placedAt         DateTime?
+  outForDeliveryAt DateTime?
+  deliveredAt      DateTime?
+  cancelledAt      DateTime?
+  stockShort       Boolean   @default(false) // sold out between checkout and payment
+
+  reviewToken String @default(cuid()) // lets the customer review what they bought
+
+  items   OrderItem[]
+  reviews Review[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status, createdAt])
+}
+
+model OrderItem {
+  id      String @id @default(cuid())
+  orderId String
+  order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  productSlug  String
+  variantId    String // Variant.code
+  name         String // English snapshot
+  nameAr       String
+  variantLabel   String
+  variantLabelAr String @default("")
+  unitPrice      Int
+  quantity     Int
+  lineTotal    Int
+
+  @@index([orderId])
+}
+
+// ——— Discounts ———
+
+enum DiscountKind {
+  PERCENT // value = whole percent, e.g. 10
+  FIXED   // value = dirhams off, e.g. 2000 = QAR 20
+}
+
+model DiscountCode {
+  id          String       @id @default(cuid())
+  code        String       @unique // stored upper-case
+  kind        DiscountKind
+  value       Int
+  minSubtotal Int          @default(0)
+  maxUses     Int?
+  uses        Int          @default(0)
+  startsAt    DateTime?
+  endsAt      DateTime?
+  active      Boolean      @default(true)
+  note        String? // e.g. "National Day 2026"
+  createdAt   DateTime     @default(now())
+}
+
+// ——— Reviews ———
+
+enum ReviewStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model Review {
+  id          String       @id @default(cuid())
+  orderId     String
+  order       Order        @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productSlug String
+  name        String // shown publicly, e.g. "Aisha B."
+  rating      Int // 1–5
+  body        String
+  photo       String? // Vercel Blob URL
+  locale      String       @default("en")
+  status      ReviewStatus @default(PENDING)
+  createdAt   DateTime     @default(now())
+
+  @@unique([orderId, productSlug]) // one review per product per order
+  @@index([productSlug, status])
+}
+
+// ——— Newsletter ———
+
+model NewsletterSubscriber {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  locale    String   @default("en")
+  createdAt DateTime @default(now())
+}

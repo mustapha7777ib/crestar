@@ -1,0 +1,289 @@
+@import "tailwindcss";
+
+/*
+ * Crestar Trading design tokens, from crestartrading.com: teal (primary),
+ * the gold of the star logo and plum, on white warmed with a trace of gold.
+ * teal-deep and gold-deep are darker cuts for text and marks on light
+ * backgrounds, where the bright brand colours are too pale to read.
+ */
+@theme inline {
+  --color-ivory: #fffcf2;
+  --color-paper: #ffffff;
+  --color-sand: #f7f0dc;
+  --color-stone: #e7e1cf;
+  --color-ink: #1f2937;
+  --color-ink-soft: #374151;
+  --color-muted: #6b7280;
+  --color-teal: #06b9a9;
+  --color-teal-deep: #0f766e;
+  --color-plum: #5a264f;
+  --color-gold: #ffd249;
+  --color-gold-deep: #a67c00;
+  --color-green: #2e7d32;
+  --color-danger: #b42318;
+
+  --ease-luxe: cubic-bezier(0.22, 1, 0.36, 1);
+
+  --animate-marquee: marquee 40s linear infinite;
+  --animate-fade-up: fade-up 0.9s var(--ease-luxe) both;
+
+  @keyframes marquee {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
+  @keyframes fade-up {
+    from { opacity: 0; transform: translateY(18px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+}
+
+/*
+ * Font stacks are swapped per language below, so they are plain (non-inline)
+ * theme variables that utilities read at run time.
+ */
+@theme {
+  --font-display: var(--font-poppins), var(--font-plex-arabic), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-poppins), var(--font-plex-arabic), ui-sans-serif, system-ui, sans-serif;
+}
+
+@layer base {
+  html {
+    background: var(--color-ivory);
+    color: var(--color-ink);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Browsers give fieldsets a min-content minimum width; let them shrink. */
+  fieldset {
+    min-inline-size: 0;
+  }
+
+  /* Nothing should ever make the storefront scroll sideways on a phone. */
+  html,
+  body {
+    overflow-x: clip;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    background: var(--color-ivory);
+  }
+
+  ::selection {
+    background: var(--color-teal);
+    color: var(--color-ink);
+  }
+
+  /* Letter-spacing breaks the joins between Arabic letters. */
+  [dir="rtl"] * {
+    letter-spacing: 0 !important;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-teal-deep);
+    outline-offset: 3px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+@layer components {
+  .container-luxe {
+    width: 100%;
+    max-width: 88rem;
+    margin-inline: auto;
+    padding-inline: 1.25rem;
+  }
+  @media (min-width: 768px) {
+    .container-luxe { padding-inline: 2.5rem; }
+  }
+
+  .eyebrow {
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--color-teal-deep);
+  }
+  [dir="rtl"] .eyebrow {
+    font-size: 0.85rem;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    height: 3.25rem;
+    padding-inline: 1.9rem;
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    transition: background-color 0.4s var(--ease-luxe), color 0.4s var(--ease-luxe),
+      border-color 0.4s var(--ease-luxe), transform 0.4s var(--ease-luxe);
+  }
+  [dir="rtl"] .btn {
+    font-size: 0.95rem;
+  }
+  .btn:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+  .btn-primary {
+    background: var(--color-ink);
+    color: var(--color-paper);
+  }
+  .btn-primary:hover:not(:disabled) {
+    background: var(--color-teal-deep);
+  }
+  .btn-light {
+    background: var(--color-paper);
+    color: var(--color-ink);
+  }
+  .btn-light:hover:not(:disabled) {
+    background: var(--color-gold);
+  }
+  .btn-outline {
+    border: 1px solid currentColor;
+  }
+  .btn-outline:hover:not(:disabled) {
+    background: var(--color-ink);
+    border-color: var(--color-ink);
+    color: var(--color-paper);
+  }
+
+  .link-underline {
+    background-image: linear-gradient(currentColor, currentColor);
+    background-size: 0% 1px;
+    background-position: 100% 100%;
+    background-repeat: no-repeat;
+    transition: background-size 0.5s var(--ease-luxe);
+  }
+  .link-underline:hover {
+    background-size: 100% 1px;
+    background-position: 0 100%;
+  }
+  [dir="rtl"] .link-underline:hover {
+    background-position: 100% 100%;
+  }
+
+  .field {
+    width: 100%;
+    height: 3.25rem;
+    padding-inline: 1rem;
+    background: var(--color-paper);
+    border: 1px solid var(--color-stone);
+    color: var(--color-ink);
+    font-size: 0.95rem;
+    transition: border-color 0.3s;
+  }
+  .field:focus {
+    outline: none;
+    border-color: var(--color-ink);
+  }
+  .field[aria-invalid="true"] {
+    border-color: var(--color-danger);
+  }
+  textarea.field {
+    height: auto;
+    padding-block: 0.85rem;
+  }
+
+  /* Hairline adire-inspired motif used as a quiet background texture. */
+  .motif {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'%3E%3Cg fill='none' stroke='%230f766e' stroke-opacity='0.12' stroke-width='1'%3E%3Ccircle cx='32' cy='32' r='10'/%3E%3Ccircle cx='32' cy='32' r='4'/%3E%3Cpath d='M0 32h14M50 32h14M32 0v14M32 50v14'/%3E%3Ccircle cx='0' cy='0' r='6'/%3E%3Ccircle cx='64' cy='0' r='6'/%3E%3Ccircle cx='0' cy='64' r='6'/%3E%3Ccircle cx='64' cy='64' r='6'/%3E%3C/g%3E%3C/svg%3E");
+  }
+  .motif-light {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'%3E%3Cg fill='none' stroke='%23fbf8f3' stroke-opacity='0.09' stroke-width='1'%3E%3Ccircle cx='32' cy='32' r='10'/%3E%3Ccircle cx='32' cy='32' r='4'/%3E%3Cpath d='M0 32h14M50 32h14M32 0v14M32 50v14'/%3E%3Ccircle cx='0' cy='0' r='6'/%3E%3Ccircle cx='64' cy='0' r='6'/%3E%3Ccircle cx='0' cy='64' r='6'/%3E%3Ccircle cx='64' cy='64' r='6'/%3E%3C/g%3E%3C/svg%3E");
+  }
+  /* Mashrabiya lattice: an eight-point star tile, for dark plum/teal/ink panels. */
+  .lattice {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='56' viewBox='0 0 56 56'%3E%3Cg fill='none' stroke='%23fbf8f3' stroke-opacity='0.09' stroke-width='1'%3E%3Cpath d='M16 16h24v24H16z'/%3E%3Cpath d='M28 11l17 17-17 17-17-17z'/%3E%3Cpath d='M0 28h11M45 28h11M28 0v11M28 45v11'/%3E%3Ccircle cx='28' cy='28' r='4'/%3E%3C/g%3E%3C/svg%3E");
+  }
+
+  /*
+   * The nine-point serration of the Qatari flag, used as a section edge.
+   * Colour comes from `color`, so <div class="serration text-plum"> works.
+   */
+  .serration {
+    height: 0.85rem;
+    background-color: currentColor;
+    -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='14' viewBox='0 0 24 14'%3E%3Cpath d='M0 0h24L12 14z'/%3E%3C/svg%3E") repeat-x 0 0 / 1.6rem 100%;
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='14' viewBox='0 0 24 14'%3E%3Cpath d='M0 0h24L12 14z'/%3E%3C/svg%3E") repeat-x 0 0 / 1.6rem 100%;
+  }
+  .serration-up {
+    transform: scaleY(-1);
+  }
+
+  /*
+   * Woven band: Gulf sadu triangles beside Nigerian aso-oke strip stripes,
+   * the two weaving traditions Crestar connects, in the brand colours.
+   */
+  .woven-band {
+    height: 1.5rem;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='72' height='24' viewBox='0 0 72 24'%3E%3Crect width='72' height='24' fill='%231f2937'/%3E%3Crect y='2.5' width='72' height='1.2' fill='%23ffd249'/%3E%3Crect y='20.3' width='72' height='1.2' fill='%23ffd249'/%3E%3Cpath d='M0 18L6 6l6 12z' fill='%2306b9a9'/%3E%3Cpath d='M12 18l6-12 6 12z' fill='%23fffcf2'/%3E%3Cpath d='M24 18l6-12 6 12z' fill='%2306b9a9'/%3E%3Cpath d='M6 6h12l-6 12zM18 6h12l-6 12z' fill='%235a264f'/%3E%3Cg fill='%23ffd249'%3E%3Crect x='40' y='6' width='2' height='12'/%3E%3Crect x='52' y='6' width='2' height='12'/%3E%3Crect x='64' y='6' width='2' height='12'/%3E%3C/g%3E%3Cg fill='%23fffcf2'%3E%3Crect x='44' y='6' width='1' height='12'/%3E%3Crect x='56' y='6' width='1' height='12'/%3E%3Crect x='68' y='6' width='1' height='12'/%3E%3C/g%3E%3Cg fill='%2306b9a9'%3E%3Crect x='46.5' y='6' width='3' height='12'/%3E%3Crect x='58.5' y='6' width='3' height='12'/%3E%3C/g%3E%3C/svg%3E") repeat-x 0 0 / auto 100%;
+  }
+}
+
+
+/* Loading skeletons: a soft sand shimmer. */
+@utility skeleton {
+  background: linear-gradient(100deg, var(--color-sand) 30%, #fbf6e8 50%, var(--color-sand) 70%);
+  background-size: 300% 100%;
+  animation: shimmer 1.6s ease-in-out infinite;
+}
+@keyframes shimmer {
+  from { background-position: 100% 0; }
+  to { background-position: 0 0; }
+}
+
+@utility no-scrollbar {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/*
+ * Unlayered on purpose so it beats `leading-*` utilities: tight Latin display
+ * leading clips Arabic ascenders and dots.
+ */
+[dir="rtl"] .font-display {
+  line-height: 1.35;
+}
+
+/*
+ * Headings are semibold in both scripts, like crestartrading.com (Poppins,
+ * IBM Plex Sans Arabic). Unlayered so it beats the `font-light` on headings.
+ */
+.font-display {
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+:lang(ar).font-display,
+:lang(ar) .font-display {
+  font-style: normal;
+}
+
+/*
+ * Put the script's own face first. next/font follows each Latin face with a
+ * metric-matched local fallback (Arial) that also contains Arabic glyphs, so
+ * with Latin-first stacks Arabic would never reach Plex.
+ */
+:lang(ar) {
+  --font-display: var(--font-plex-arabic), var(--font-poppins), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-plex-arabic), var(--font-poppins), ui-sans-serif, system-ui, sans-serif;
+}
+:lang(en) {
+  --font-display: var(--font-poppins), var(--font-plex-arabic), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-poppins), var(--font-plex-arabic), ui-sans-serif, system-ui, sans-serif;
+}
